@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Арима — Мессенджер</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* --- ЭКРАН ВХОДА --- */
+        #login {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 30px 20px;
+            gap: 15px;
+        }
+        
+        #login .logo {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+        
+        #login h1 {
+            font-size: 42px;
+            background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+        
+        #login input {
+            width: 100%;
+            max-width: 320px;
+            padding: 15px 18px;
+            border: 2px solid #2a2a2a;
+            border-radius: 14px;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        #login input:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+        
+        #login input::placeholder {
+            color: #666;
+        }
+        
+        #login button {
+            width: 100%;
+            max-width: 320px;
+            padding: 16px;
+            background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+            border: none;
+            border-radius: 14px;
+            color: #000;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        #login button:active {
+            transform: scale(0.97);
+        }
+        
+        #login .error {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        /* --- ЭКРАН ЧАТА --- */
+        #chat {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        #header {
+            padding: 15px 20px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        #header .chat-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        #header .chat-info h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        #header .chat-info .online {
+            font-size: 12px;
+            color: #4ade80;
+        }
+        
+        #stars-display {
+            color: #ffd93d;
+            font-weight: bold;
+            font-size: 18px;
+            background: #2a2a2a;
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+        
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #0f0f0f;
+        }
+        
+        .msg {
+            max-width: 85%;
+            padding: 10px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .msg.sent {
+            background: #2b2b2b;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .msg.received {
+            background: #1a1a1a;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+            border: 1px solid #2a2a2a;
+        }
+        
+        .msg .sender-name {
+            font-size: 12px;
+            color: #ff6b6b;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        
+        .msg .star-badge {
+            display: inline-block;
+            color: #ffd93d;
+            font-size: 14px;
+            margin-right: 4px;
+        }
+        
+        .msg .text {
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        
+        .msg .file-attachment {
+            display: inline-block;
+            background: #2a2a2a;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        
+        .msg .file-attachment a {
+            color: #ffd93d;
+            text-decoration: none;
+        }
+        
+        .msg .time {
+            font-size: 10px;
+            opacity: 0.4;
+            margin-top: 5px;
+            text-align: right;
+        }
+        
+        .system-msg {
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+            padding: 8px;
+            font-style: italic;
+        }
+        
+        #input-area {
+            padding: 10px 15px;
+            background: #1a1a1a;
+            border-top: 1px solid #2a2a2a;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        #input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 25px;
+            border: 2px solid #2a2a2a;
+            background: #0f0f0f;
+            color: #fff;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        #input-area input:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+        
+        #input-area .btn-send {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+            color: #000;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            min-width: 50px;
+        }
+        
+        #input-area .btn-send:active {
+            transform: scale(0.93);
+        }
+        
+        #input-area .btn-star {
+            padding: 12px 14px;
+            border: 2px solid #ffd93d;
+            border-radius: 25px;
+            background: transparent;
+            color: #ffd93d;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 50px;
+        }
+        
+        #input-area .btn-star:active {
+            background: #ffd93d22;
+        }
+        
+        .typing-indicator {
+            color: #666;
+            font-size: 13px;
+            font-style: italic;
+            padding: 4px 16px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* --- АДАПТИВ --- */
+        @media (max-width: 480px) {
+            #login h1 { font-size: 32px; }
+            .msg { max-width: 92%; }
+            #header .chat-info h2 { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ========== ЭКРАН ВХОДА ========== -->
+<div id="login">
+    <div class="logo">🌟</div>
+    <h1>Арима</h1>
+    <input type="text" id="phone" placeholder="📱 Телефон (79123456789)" value="79123456789">
+    <input type="text" id="firstName" placeholder="👤 Имя" value="Тестер">
+    <input type="password" id="password" placeholder="🔒 Пароль" value="123456">
+    <button onclick="loginOrRegister()">🚀 Войти</button>
+    <div class="error" id="errorMsg"></div>
+</div>
+
+<!-- ========== ЭКРАН ЧАТА ========== -->
+<div id="chat">
+    <div id="header">
+        <div class="chat-info">
+            <span style="font-size:24px;">💬</span>
+            <div>
+                <h2>Общий чат</h2>
+                <span class="online">● Онлайн</span>
+            </div>
+        </div>
+        <div id="stars-display">⭐ 0</div>
+    </div>
+    
+    <div id="messages">
+        <div class="system-msg">✨ Добро пожаловать в Ариму!</div>
+    </div>
+    
+    <div id="input-area">
+        <input type="text" id="msgInput" placeholder="Напишите сообщение..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button class="btn-star" onclick="sendStarGift()" title="Отправить подарок ⭐">⭐</button>
+        <button class="btn-send" onclick="sendMessage()">➤</button>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // КОНФИГУРАЦИЯ
+    // ============================================
+    const API_URL = window.location.origin;
+    let userId = null;
+    let userName = '';
+    let ws = null;
+    let chatId = 1;  // Общий чат
+    
+    // ============================================
+    // ВХОД / РЕГИСТРАЦИЯ
+    // ============================================
+    async function loginOrRegister() {
+        const phone = document.getElementById('phone').value.trim();
+        const firstName = document.getElementById('firstName').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const errorEl = document.getElementById('errorMsg');
+        
+        if (!phone || !firstName || !password) {
+            errorEl.textContent = '❌ Заполните все поля';
+            errorEl.style.display = 'block';
+            return;
+        }
+        
+        errorEl.style.display = 'none';
+        
+        try {
+            // Сначала пробуем войти
+            let res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, password })
+            });
+            
+            let data = await res.json();
+            
+            if (res.ok) {
+                // Успешный вход
+                userId = data.id;
+                userName = data.first_name;
+                startChat();
+                return;
+            }
+            
+            // Если не вошли — регистрируем
+            if (res.status === 404 || res.status === 401) {
+                res = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, first_name: firstName, password })
+                });
+                
+                data = await res.json();
+                
+                if (res.ok) {
+                    userId = data.id;
+                    userName = firstName;
+                    startChat();
+                    return;
+                }
+            }
+            
+            errorEl.textContent = '❌ ' + (data.detail || 'Ошибка');
+            errorEl.style.display = 'block';
+            
+        } catch (e) {
+            errorEl.textContent = '❌ Ошибка подключения к серверу';
+            errorEl.style.display = 'block';
+            console.error(e);
+        }
+    }
+    
+    // ============================================
+    // ЗАПУСК ЧАТА
+    // ============================================
+    function startChat() {
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('chat').style.display = 'flex';
+        
+        loadBalance();
+        loadMessages();
+        connectWebSocket();
+        
+        // Фокус на поле ввода
+        document.getElementById('msgInput').focus();
+    }
+    
+    // ============================================
+    // WEBSOCKET
+    // ============================================
+    function connectWebSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        ws = new WebSocket(`${protocol}${window.location.host}/ws/${userId}`);
+        
+        ws.onopen = () => {
+            console.log('✅ WebSocket подключен');
+        };
+        
+        ws.onmessage = (e) => {
+            try {
+                const data = JSON.parse(e.data);
+                console.log('📨 Получено:', data);
+                
+                if (data.type === 'new_message') {
+                    addMessage(data.message, data.message.sender_id === userId);
+                } else if (data.type === 'typing') {
+                    // Показываем индикатор печатания
+                    if (data.is_typing) {
+                        showTyping(data.user_id);
+                    } else {
+                        hideTyping(data.user_id);
+                    }
+                }
+            } catch (err) {
+                console.error('Ошибка парсинга WebSocket:', err);
+            }
+        };
+        
+        ws.onclose = () => {
+            console.log('❌ WebSocket отключен, переподключение...');
+            setTimeout(connectWebSocket, 3000);
+        };
+        
+        ws.onerror = (err) => {
+            console.error('WebSocket ошибка:', err);
+        };
+    }
+    
+    // ============================================
+    // ОТПРАВКА СООБЩЕНИЯ
+    // ============================================
+    async function sendMessage() {
+        const input = document.getElementById('msgInput');
+        const text = input.value.trim();
+        if (!text || !userId) return;
+        
+        const formData = new FormData();
+        formData.append('chat_id', chatId);
+        formData.append('sender_id', userId);
+        formData.append('text', text);
+        
+        try {
+            const res = await fetch(`${API_URL}/send_message`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok) {
+                input.value = '';
+                loadBalance();
+            } else {
+                alert('❌ ' + (data.detail || 'Ошибка отправки'));
+            }
+        } catch (e) {
+            alert('❌ Ошибка подключения');
+            console.error(e);
+        }
+    }
+    
+    // ============================================
+    // ОТПРАВКА ЗВЁЗДНОГО ПОДАРКА
+    // ============================================
+    async function sendStarGift() {
+        if (!userId) return;
+        
+        const formData = new FormData();
+        formData.append('chat_id', chatId);
+        formData.append('sender_id', userId);
+        formData.append('text', '⭐ Подарок!');
+        formData.append('is_star_gift', 'true');
+        formData.append('star_cost', '5');
+        
+        try {
+            const res = await fetch(`${API_URL}/send_message`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok) {
+                loadBalance();
+                // Добавляем сообщение локально (WebSocket разошлёт всем)
+                addMessage({
+                    sender_id: userId,
+                    text: '⭐ Подарок!',
+                    is_star_gift: true,
+                    star_cost: 5,
+                    created_at: new Date().toISOString()
+                }, true);
+            } else {
+                alert('❌ ' + (data.detail || 'Недостаточно звёзд!'));
+            }
+        } catch (e) {
+            alert('❌ Ошибка отправки подарка');
+            console.error(e);
+        }
+    }
+    
+    // ============================================
+    // ЗАГРУЗКА БАЛАНСА
+    // ============================================
+    async function loadBalance() {
+        if (!userId) return;
+        try {
+            const res = await fetch(`${API_URL}/balance/${userId}`);
+            const data = await res.json();
+            if (res.ok) {
+                document.getElementById('stars-display').textContent = '⭐ ' + data.stars;
+            }
+        } catch (e) {
+            console.error('Ошибка загрузки баланса:', e);
+        }
+    }
+    
+    // ============================================
+    // ЗАГРУЗКА ИСТОРИИ СООБЩЕНИЙ
+    // ============================================
+    async function loadMessages() {
+        try {
+            const res = await fetch(`${API_URL}/messages/${chatId}?limit=50`);
+            const messages = await res.json();
+            
+            const container = document.getElementById('messages');
+            // Очищаем (оставляем только системные)
+            container.innerHTML = '<div class="system-msg">💬 История сообщений</div>';
+            
+            messages.forEach(msg => {
+                const isSent = msg.sender_id === userId;
+                addMessage(msg, isSent, false);
+            });
+            
+            // Скроллим вниз
+            container.scrollTop = container.scrollHeight;
+        } catch (e) {
+            console.error('Ошибка загрузки сообщений:', e);
+        }
+    }
+    
+    // ============================================
+    // ДОБАВЛЕНИЕ СООБЩЕНИЯ В ЧАТ
+    // ============================================
+    function addMessage(msg, isSent, animate = true) {
+        const container = document.getElementById('messages');
+        
+        // Убираем системные сообщения если они есть
+        const systemMsgs = container.querySelectorAll('.system-msg');
+        if (systemMsgs.length > 0 && container.children.length > 1) {
+            systemMsgs.forEach(el => el.remove());
+        }
+        
+        const div = document.createElement('div');
+        div.className = `msg ${isSent ? 'sent' : 'received'}`;
+        
+        // Имя отправителя (если не своё)
+        if (!isSent) {
+            const nameSpan = document.createElement('div');
+            nameSpan.className = 'sender-name';
+            nameSpan.textContent = msg.sender_name || 'Пользователь';
+            div.appendChild(nameSpan);
+        }
+        
+        // Текст
+        const textSpan = document.createElement('div');
+        textSpan.className = 'text';
+        
+        if (msg.is_star_gift) {
+            textSpan.innerHTML = '⭐ <strong>Подарок!</strong> ⭐';
+        } else {
+            textSpan.textContent = msg.text || '';
+        }
+        div.appendChild(textSpan);
+        
+        // Файл
+        if (msg.file_path) {
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'file-attachment';
+            fileDiv.innerHTML = `📎 <a href="${API_URL}/${msg.file_path}" target="_blank">${msg.file_name || 'Файл'}</a>`;
+            div.appendChild(fileDiv);
+        }
+        
+        // Время
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'time';
+        const date = new Date(msg.created_at);
+        timeDiv.textContent = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        div.appendChild(timeDiv);
+        
+        if (animate) {
+            div.style.animation = 'fadeIn 0.3s ease';
+        }
+        
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    // ============================================
+    // ИНДИКАТОР ПЕЧАТАНИЯ
+    // ============================================
+    let typingTimeout = null;
+    
+    function showTyping(userId) {
+        const container = document.getElementById('messages');
+        let typingEl = document.getElementById('typing-indicator');
+        
+        if (!typingEl) {
+            typingEl = document.createElement('div');
+            typingEl.id = 'typing-indicator';
+            typingEl.className = 'typing-indicator';
+            typingEl.textContent = '✏️ Кто-то печатает...';
+            container.appendChild(typingEl);
+            container.scrollTop = container.scrollHeight;
+        }
+    }
+    
+    function hideTyping(userId) {
+        const typingEl = document.getElementById('typing-indicator');
+        if (typingEl) {
+            typingEl.remove();
+        }
+    }
+    
+    // ============================================
+    // ОТПРАВКА СТАТУСА "ПЕЧАТАЕТ"
+    // ============================================
+    let typingTimer = null;
+    
+    document.getElementById('msgInput').addEventListener('input', function() {
+        if (!ws || !userId) return;
+        
+        if (typingTimer) clearTimeout(typingTimer);
+        
+        ws.send(JSON.stringify({
+            action: 'typing',
+            chat_id: chatId,
+            is_typing: true
+        }));
+        
+        typingTimer = setTimeout(() => {
+            if (ws) {
+                ws.send(JSON.stringify({
+                    action: 'typing',
+                    chat_id: chatId,
+                    is_typing: false
+                }));
+            }
+        }, 3000);
+    });
+    
+    // ============================================
+    // ЗАГРУЗКА ПРИ СТАРТЕ
+    // ============================================
+    console.log('🌟 Арима загружена!');
+</script>
+
+</body>
+                               </html>
